@@ -27,7 +27,8 @@ def process_message(message):
     
     email = Email.objects.create(
         return_date=timestamp,
-        address=message['from'],
+        client_address=message['from'],
+        server_address=message['to'],
         mime_payload=message.as_string()
     )
         
