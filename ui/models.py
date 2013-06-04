@@ -1,6 +1,21 @@
+import email
+import smtplib
+
 from django.db import models
 
 class Email(models.Model):
-    address = models.EmailField()
+    client_address = models.EmailField()
+    server_address = models.EmailField()
     return_date = models.DateTimeField()
     mime_payload = models.TextField()
+    
+    def send(self):
+        message = email.message_from_string(self.mime_payload)
+        message['to'] = self.client_address
+        
+        smtp = smtplib.SMTP('localhost')
+        smtp.sendmail(self.client_address, self.server_address, message.as_string())
+        smtp.quit()
+    
+    def __str__(self):
+        return '%s: %s' % (self.return_date, self.address)
