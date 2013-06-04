@@ -37,14 +37,14 @@ def process_message(message):
     return_message['subject'] = message['subject']
     return_message.set_payload(message.get_payload()) 
     
-    email = Email.objects.create(
+    dbe = Email.objects.create(
         return_date=timestamp,
         client_address=client_address,
         server_address=server_address,
         mime_payload=return_message.as_string()
     )
         
-    reply(message, 'Successfully enqueued for delivery on %s with id %s.' % (timestamp, email.id))
+    reply(message, 'Successfully enqueued for delivery on %s with id %s.' % (timestamp, dbe.id))
 
 class Command(NoArgsCommand):
     def handle_noargs(self, **_options):
