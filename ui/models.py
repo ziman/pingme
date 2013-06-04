@@ -10,12 +10,8 @@ class Email(models.Model):
     mime_payload = models.TextField()
     
     def send(self):
-        message = email.message_from_string(self.mime_payload)
-        message['from'] = self.server_address
-        message['to'] = self.client_address
-        
         smtp = smtplib.SMTP('localhost')
-        smtp.sendmail(self.server_address, [self.client_address], message.as_string())
+        smtp.sendmail(self.server_address, [self.client_address], self.mime_payload)
         smtp.quit()
     
     def __str__(self):

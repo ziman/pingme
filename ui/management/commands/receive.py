@@ -31,11 +31,17 @@ def process_message(message):
     TS_FORMAT = '%Y%m%d%H%M' 
     timestamp = timezone.make_aware(datetime.datetime.strptime(ts_text, TS_FORMAT), timezone.get_current_timezone())
     
+    return_message = email.message.Message()
+    return_message['to'] = client_address
+    return_message['from'] = server_address
+    return_message['subject'] = message['subject']
+    return_message.set_payload(message.get_payload()) 
+    
     email = Email.objects.create(
         return_date=timestamp,
         client_address=client_address,
         server_address=server_address,
-        mime_payload=message.as_string()
+        mime_payload=return_message.as_string()
     )
         
     reply(message, 'Successfully enqueued for delivery on %s with id %s.' % (timestamp, email.id))
