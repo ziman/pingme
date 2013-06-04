@@ -18,4 +18,4 @@ class Email(models.Model):
         smtp.quit()
     
     def __str__(self):
-        return '%s: %s' % (self.return_date, self.address)
+        return '%s: %s' % (self.return_date, self.client_address)
