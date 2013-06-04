@@ -2,6 +2,7 @@ import re
 import sys
 import email
 import smtplib
+import datetime
 
 from django.utils import timezone
 from django.core.management.base import NoArgsCommand
@@ -16,9 +17,21 @@ def reply(message, text):
 def process_message(message):
     match = re.match(r'^pingme-([^@]+)@functor.sk$', message['to'])
     if not match:
-        reply(message, 'Unrecognized target address: %s' % match.group(1))
+        reply(message, 'Unrecognized target address: %s' % message['to'])
         
-    reply(message, 'Recognized target address: %s' % match.group(1))
+    ts_text = re.sub(r'[^0-9]+', '', match.group(1))
+    ts_text += (12 - len(ts_text)) * '0'
+    
+    TS_FORMAT = '%Y%m%d%H%M' 
+    timestamp = timezone.make_aware(datetime.datetime.strptime(ts_text, TS_FORMAT), timezone.get_current_timezone())
+    
+    email = Email.objects.create(
+        return_date=timestamp,
+        address=message['from'],
+        mime_payload=message.as_text()
+    )
+        
+    reply(message, 'Successfully enqueued for delivery on %s with id %s.' % (timestamp, email.id))
 
 class Command(NoArgsCommand):
     def handle_noargs(self, **_options):
