@@ -13,11 +13,17 @@ def reply(message, text):
     smtp = smtplib.SMTP('localhost')
     smtp.sendmail(message['to'], message['from'], text)
     smtp.quit()
+    
+def extract_email(addr):
+    return email.utils.parseaddr(addr)[1]
 
 def process_message(message):
-    match = re.match(r'^pingme-([^@]+)@functor.sk$', message['to'])
+    server_address = extract_email(message['to'])
+    client_address = extract_email(message['from'])
+    
+    match = re.match(r'^pingme-([^@]+)@functor.sk$', server_address)
     if not match:
-        reply(message, 'Unrecognized target address: %s' % message['to'])
+        reply(message, 'Unrecognized target address: %s' % server_address)
         
     ts_text = re.sub(r'[^0-9]+', '', match.group(1))
     ts_text += (12 - len(ts_text)) * '0'
@@ -27,8 +33,8 @@ def process_message(message):
     
     email = Email.objects.create(
         return_date=timestamp,
-        client_address=message['from'],
-        server_address=message['to'],
+        client_address=client_address,
+        server_address=server_address,
         mime_payload=message.as_string()
     )
         
