@@ -13,7 +13,14 @@ def reply(message, text):
     smtp.sendmail(message['to'], message['from'], text)
     smtp.quit()
 
+def process_message(message):
+    match = re.match(r'^pingme-([^@]+)@functor.sk$', message['to'])
+    if not match:
+        reply(message, 'Unrecognized target address: %s' % match.group(1))
+        
+    reply(message, 'Recognized target address: %s' % match.group(1))
+
 class Command(NoArgsCommand):
     def handle_noargs(self, **_options):
-        pass
-        
+        message = email.message_from_file(sys.stdin)
+        process_message(message)
