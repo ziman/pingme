@@ -28,7 +28,7 @@ def process_message(message):
     email = Email.objects.create(
         return_date=timestamp,
         address=message['from'],
-        mime_payload=message.as_text()
+        mime_payload=message.as_string()
     )
         
     reply(message, 'Successfully enqueued for delivery on %s with id %s.' % (timestamp, email.id))
