@@ -14,7 +14,7 @@ class Email(models.Model):
         message['to'] = self.client_address
         
         smtp = smtplib.SMTP('localhost')
-        smtp.sendmail(self.client_address, self.server_address, message.as_string())
+        smtp.sendmail(self.server_address, self.client_address, message.as_string())
         smtp.quit()
     
     def __str__(self):
