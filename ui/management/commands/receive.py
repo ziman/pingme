@@ -6,6 +6,7 @@ import datetime
 
 from django.utils import timezone
 from django.core.management.base import NoArgsCommand
+from django.conf import settings
 
 from ui.models import Email
 
@@ -17,19 +18,24 @@ def reply(message, text):
 def extract_email(addr):
     return email.utils.parseaddr(addr)[1]
 
+def parse_timestamp(ts_text):
+    """ Returns datetime object from a string, or raises ValueError """
+    ts_text = re.sub(r'[^0-9]+', '', ts_text)
+    ts_text += (12 - len(ts_text)) * '0'
+    
+    TS_FORMAT = '%Y%m%d%H%M'
+    return datetime.datetime.strptime(ts_text, TS_FORMAT)
+
 def process_message(message):
     server_address = extract_email(message['to'])
     client_address = extract_email(message['from'])
     
-    match = re.match(r'^pingme-([^@]+)@functor.sk$', server_address)
+    match = re.match(settings.PINGME_CATCH_REGEX, server_address)
     if not match:
         reply(message, 'Unrecognized target address: %s' % server_address)
         
-    ts_text = re.sub(r'[^0-9]+', '', match.group(1))
-    ts_text += (12 - len(ts_text)) * '0'
     
-    TS_FORMAT = '%Y%m%d%H%M' 
-    timestamp = timezone.make_aware(datetime.datetime.strptime(ts_text, TS_FORMAT), timezone.get_current_timezone())
+    timestamp = timezone.make_aware(parse_datetime(match.group(1)), timezone.get_current_timezone())
     
     return_message = email.message.Message()
     return_message['to'] = client_address

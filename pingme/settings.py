@@ -155,3 +155,6 @@ LOGGING = {
         },
     }
 }
+
+# what e-mail addresses to catch. the time specification will be the first match group
+PINGME_CATCH_REGEX=r'^pingme-([^@]+)@functor.sk$'
