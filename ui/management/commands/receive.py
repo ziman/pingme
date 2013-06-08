@@ -3,6 +3,7 @@ import sys
 import email
 import smtplib
 import datetime
+import subprocess
 
 from django.utils import timezone
 from django.core.management.base import NoArgsCommand
@@ -18,13 +19,26 @@ def reply(message, text):
 def extract_email(addr):
     return email.utils.parseaddr(addr)[1]
 
-def parse_timestamp(ts_text):
-    """ Returns datetime object from a string, or raises ValueError """
+def _parse_simple_timestamp(ts_text):
     ts_text = re.sub(r'[^0-9]+', '', ts_text)
     ts_text += (12 - len(ts_text)) * '0'
-    
     TS_FORMAT = '%Y%m%d%H%M'
     return datetime.datetime.strptime(ts_text, TS_FORMAT)
+
+def parse_timestamp(ts_text):
+    """ Returns datetime object from a string, or raises ValueError """
+    try:
+        return _parse_simple_timestamp(ts_text)
+    except ValueError:
+        pass
+    
+    replaced = ts_text.replace('-', ' ')
+    try:
+        interpreted = subprocess.check_output(['date', '--date='+replaced, '+%Y%m%d%H%M'])
+    except subprocess.CalledProcessError as e:
+        raise ValueError(e.output)
+    
+    return datetime.datetime.strptime(interpreted.strip(), '%Y%m%d%H%M')
 
 def process_message(message):
     server_address = extract_email(message['to'])
